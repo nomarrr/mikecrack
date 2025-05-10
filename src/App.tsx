@@ -57,10 +57,9 @@ function App() {
           <BrowserRouter>
             <AuthProvider>
               <Routes>
+                {/* Mostrar Login tanto en / como en /login */}
+                <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
-                
-                {/* Redirección de la ruta raíz al login */}
-                <Route path="/" element={<Navigate to="/login" replace />} />
                 
                 {/* Rutas protegidas */}
                 <Route element={<ProtectedRoute />}>
