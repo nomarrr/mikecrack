@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { 
   Box, 
@@ -15,15 +15,42 @@ import {
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
-import { authService } from '../services/supabaseService'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const navigate = useNavigate()
   const { signIn } = useAuth()
+
+  // Verificar si el usuario ya está autenticado
+  useEffect(() => {
+    const checkAuth = () => {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr)
+          if (userData && userData.role) {
+            // Redirigir según el rol
+            const roleRoutes = {
+              Administrador: '/admin/dashboard',
+              Alumno: '/alumno/horario',
+              Jefe_de_Grupo: '/jefe/horario',
+              Checador: '/checador/horario',
+              Maestro: '/maestro/horario'
+            }
+            navigate(roleRoutes[userData.role] || '/login')
+          }
+        } catch (e) {
+          console.error('Error parsing user data', e)
+        }
+      }
+    }
+    
+    checkAuth()
+  }, [navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -70,6 +97,10 @@ export default function Login() {
     }
   }
 
+  const handleImageError = () => {
+    setImageLoaded(false)
+  }
+
   return (
     <Box 
       sx={{
@@ -100,16 +131,38 @@ export default function Login() {
             Checador Login
           </Typography>
           
-          <Box 
-            component="img" 
-            src="/vision2025.jpeg" 
-            alt="Logo" 
-            sx={{ 
-              height: 110, 
-              mb: 3,
-              maxWidth: '100%'
-            }} 
-          />
+          {/* Usar un enfoque condicional o una imagen base64 como reserva */}
+          {!imageLoaded ? (
+            <Box 
+              sx={{ 
+                height: 110, 
+                mb: 3,
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                bgcolor: 'rgba(0,0,0,0.05)',
+                borderRadius: 1
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Sistema de Checado
+              </Typography>
+            </Box>
+          ) : (
+            <Box 
+              component="img" 
+              src="vision2025.jpeg" 
+              alt="Logo" 
+              onError={handleImageError}
+              onLoad={() => setImageLoaded(true)}
+              sx={{ 
+                height: 110, 
+                mb: 3,
+                maxWidth: '100%'
+              }} 
+            />
+          )}
           
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
