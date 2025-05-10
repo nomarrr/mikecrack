@@ -7,13 +7,20 @@ export default defineConfig(({ mode }) => {
   // Cargar variables de entorno según el modo (development, production, etc.)
   const env = loadEnv(mode, process.cwd(), '')
   
+  // Valores por defecto para compilación en caso de que falten variables
+  const supabaseUrl = env.VITE_SUPABASE_URL || 'https://placeholder-supabase-url.supabase.co'
+  const supabaseKey = env.VITE_SUPABASE_ANON_KEY || 'placeholder-key-for-development-only'
+  
   return {
     plugins: [react()],
     base: '', // Usar ruta relativa vacía para assets
     define: {
       // Hacer que las variables de entorno estén disponibles en runtime
-      'process.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL || ''),
-      'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY || ''),
+      // Usar JSON.stringify para asegurar que se pasen como strings
+      'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
+      'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseKey),
+      'process.env.VITE_SUPABASE_URL': JSON.stringify(supabaseUrl),
+      'process.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(supabaseKey),
     },
     resolve: {
       alias: {
