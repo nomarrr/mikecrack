@@ -16,9 +16,10 @@ import {
   Grid,
   Snackbar,
   Alert,
-  CircularProgress
+  CircularProgress,
+  SelectChangeEvent
 } from '@mui/material';
-import { gruposService, materiasService, usuariosService, horariosService, carrerasService, Carrera } from '../services/supabaseService';
+import { carrerasService, Carrera } from '../services/supabaseService';
 import { supabase } from '../lib/supabase';
 
 const DIAS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
@@ -28,17 +29,41 @@ const formatHora = (hora: string) => {
   return `${hora} - ${parseInt(hora.split(':')[0]) + 1}:00`;
 };
 
+interface GrupoData {
+  id: number;
+  name: string;
+  classroom: string;
+  building: string;
+  carrera_id?: number;
+}
+
+interface MaestroData {
+  id: number;
+  name: string;
+  role: string;
+}
+
+interface HorarioItem {
+  dia: string;
+  hora: string;
+  materia: string;
+  maestro: string;
+  aula: string;
+  edificio: string;
+  horarioId?: number;
+}
+
 export default function AlumnoHorarioPage() {
   const [selectedGrupo, setSelectedGrupo] = useState<string>('');
   const [selectedMaestro, setSelectedMaestro] = useState<string>('');
   const [selectedCarreraFilter, setSelectedCarreraFilter] = useState<string>('');
-  const [grupos, setGrupos] = useState<any[]>([]);
-  const [maestros, setMaestros] = useState<any[]>([]);
+  const [grupos, setGrupos] = useState<GrupoData[]>([]);
+  const [maestros, setMaestros] = useState<MaestroData[]>([]);
   const [carreras, setCarreras] = useState<Carrera[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [horarioData, setHorarioData] = useState(new Map<string, any>());
+  const [horarioData, setHorarioData] = useState(new Map<string, HorarioItem>());
 
   // Función para filtrar grupos por carrera
   const getGruposFiltrados = () => {
@@ -51,12 +76,12 @@ export default function AlumnoHorarioPage() {
     setSelectedGrupo('');
   }, [selectedCarreraFilter]);
 
-  const handleChangeGrupo = (event: any) => {
+  const handleChangeGrupo = (event: SelectChangeEvent) => {
     setSelectedGrupo(event.target.value);
     setSelectedMaestro('');
   };
 
-  const handleChangeMaestro = (event: any) => {
+  const handleChangeMaestro = (event: SelectChangeEvent) => {
     setSelectedMaestro(event.target.value);
     setSelectedGrupo('');
   };
@@ -119,7 +144,7 @@ export default function AlumnoHorarioPage() {
 
         if (horariosError) throw horariosError;
 
-        const horarioMap = new Map();
+        const horarioMap = new Map<string, HorarioItem>();
 
         // Inicializar todas las celdas como vacías
         DIAS.forEach(dia => {
@@ -137,15 +162,19 @@ export default function AlumnoHorarioPage() {
         });
 
         // Llenar con los horarios existentes
-        horarios?.forEach(horario => {
+        horarios?.forEach((horario: any) => {
           const key = `${horario.dia}-${horario.hora}`;
+          const grupoActual = horario.grupo || {};
+          const maestroActual = horario.maestro || {};
+          const materiaActual = horario.materia || {};
+          
           horarioMap.set(key, {
             dia: horario.dia,
             hora: horario.hora,
-            materia: horario.materia?.name || '',
-            maestro: selectedGrupo ? horario.maestro?.name : horario.grupo?.name,
-            aula: horario.grupo?.classroom || '',
-            edificio: horario.grupo?.building || '',
+            materia: materiaActual.name || '',
+            maestro: selectedGrupo ? maestroActual.name : grupoActual.name,
+            aula: grupoActual.classroom || '',
+            edificio: grupoActual.building || '',
             horarioId: horario.id
           });
         });
@@ -163,7 +192,7 @@ export default function AlumnoHorarioPage() {
     fetchHorario();
   }, [selectedGrupo, selectedMaestro]);
 
-  const getHorasNecesarias = (horarioMap: Map<string, any>): string[] => {
+  const getHorasNecesarias = (horarioMap: Map<string, HorarioItem>): string[] => {
     let horasConClase = new Set<string>();
     
     horarioMap.forEach((value) => {
@@ -206,14 +235,14 @@ export default function AlumnoHorarioPage() {
             <Select
               value={selectedCarreraFilter}
               label="Carrera"
-              onChange={(e) => setSelectedCarreraFilter(e.target.value)}
+              onChange={(e: SelectChangeEvent) => setSelectedCarreraFilter(e.target.value)}
               disabled={loading}
             >
               <MenuItem value="">
                 <em>Seleccione una carrera</em>
               </MenuItem>
               {carreras.map((carrera) => (
-                <MenuItem key={carrera.id} value={carrera.id.toString()}>
+                <MenuItem key={carrera.id} value={carrera.id?.toString()}>
                   {carrera.nombre}
                 </MenuItem>
               ))}

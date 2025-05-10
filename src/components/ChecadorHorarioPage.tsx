@@ -17,9 +17,7 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem,
-  Stack,
-  Divider
+  MenuItem
 } from '@mui/material';
 import { supabase } from '../lib/supabase';
 import { SelectChangeEvent } from '@mui/material';
@@ -27,14 +25,6 @@ import { SelectChangeEvent } from '@mui/material';
 // Constantes
 const HORAS = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
                '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
-
-const DIAS_MAP: { [key: number]: string } = {
-  1: 'Lunes',
-  2: 'Martes',
-  3: 'Miércoles',
-  4: 'Jueves',
-  5: 'Viernes'
-};
 
 // Funciones auxiliares
 const getToday = () => {
@@ -56,12 +46,28 @@ interface HorarioData {
   horarioId?: number;
 }
 
-interface Maestro {
-  id: string;
+interface MateriaData {
   name: string;
 }
 
-const DIAS_COMPLETOS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+interface GrupoData {
+  name: string;
+  classroom: string;
+  building: string;
+}
+
+interface MaestroData {
+  name: string;
+}
+
+interface HorarioRaw {
+  id: number;
+  hora: string;
+  dia: string;
+  materia: MateriaData;
+  grupo: GrupoData;
+  maestro: MaestroData;
+}
 
 const formatHora = (hora: string) => {
   return hora;
@@ -150,7 +156,7 @@ export default function ChecadorHorarioPage() {
 
       // Debug: Imprimir los horarios encontrados
       console.log('Horarios encontrados:', horarios);
-      console.log('Cantidad de horarios por hora:', horarios?.reduce((acc, h) => {
+      console.log('Cantidad de horarios por hora:', horarios?.reduce((acc: Record<string, number>, h: any) => {
         acc[h.hora] = (acc[h.hora] || 0) + 1;
         return acc;
       }, {}));
@@ -160,7 +166,7 @@ export default function ChecadorHorarioPage() {
         .from('asistencia_checador')
         .select('*')
         .eq('fecha', fecha)
-        .in('horario_id', horarios?.map(h => h.id) || []);
+        .in('horario_id', horarios?.map((h: any) => h.id) || []);
 
       if (asistenciasError) throw asistenciasError;
 
@@ -174,8 +180,8 @@ export default function ChecadorHorarioPage() {
       });
 
       // Procesar cada horario
-      horarios?.forEach(horario => {
-        const asistenciaHoy = asistencias?.find(a => a.horario_id === horario.id);
+      horarios?.forEach((horario: any) => {
+        const asistenciaHoy = asistencias?.find((a: any) => a.horario_id === horario.id);
         const key = `${dia}-${horario.hora}`;
         
         // Debug: Imprimir cada horario que se está procesando
@@ -198,25 +204,27 @@ export default function ChecadorHorarioPage() {
         };
 
         // Obtener el array existente y añadir el nuevo horario
-        const horariosExistentes = horarioMap.get(key) || [];
-        const newHorarios = [...horariosExistentes, horarioItem];
-        horarioMap.set(key, newHorarios);
-
-        // Debug: Imprimir el estado actual del mapa para esta hora
-        console.log(`Estado del mapa para ${key}:`, newHorarios.length);
+        const horariosActuales = horarioMap.get(key) || [];
+        horariosActuales.push(horarioItem);
+        horarioMap.set(key, horariosActuales);
       });
 
-      // Debug: Imprimir el mapa final
-      console.log('Mapa final:', Object.fromEntries(horarioMap));
-      console.log('Horas necesarias:', horasNecesarias);
-
       setHorarioData(horarioMap);
-      setHorasNecesarias(horasAMostrar);
+      
+      // Actualizar las horas necesarias
+      const horasConClases = Array.from(new Set(horarios?.map((h: any) => h.hora) || [])).sort();
+      if (horasConClases.length > 0) {
+        setHorasNecesarias(horasConClases);
+      } else if (selectedHora) {
+        setHorasNecesarias([selectedHora]);
+      } else {
+        setHorasNecesarias(HORAS);
+      }
 
-    } catch (error: any) {
-      console.error('Error al cargar horarios:', error);
-      setError('Error al cargar horarios: ' + error.message);
-    } finally {
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Error al cargar horarios:', err);
+      setError(`Error: ${err.message}`);
       setLoading(false);
     }
   };

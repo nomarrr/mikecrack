@@ -1,4 +1,4 @@
-import { Box, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Box, List, ListItem, ListItemIcon, ListItemText, ListItemButton } from '@mui/material';
 import { Schedule, ExitToApp } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,18 +13,22 @@ export default function AlumnoSidebar() {
   return (
     <Box sx={{ width: 240, bgcolor: 'background.paper' }}>
       <List>
-        <ListItem button onClick={() => navigate('/alumno/horario')}>
-          <ListItemIcon>
-            <Schedule />
-          </ListItemIcon>
-          <ListItemText primary="Horario" />
+        <ListItem disablePadding>
+          <ListItemButton onClick={() => navigate('/alumno/horario')}>
+            <ListItemIcon>
+              <Schedule />
+            </ListItemIcon>
+            <ListItemText primary="Horario" />
+          </ListItemButton>
         </ListItem>
 
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon>
-            <ExitToApp />
-          </ListItemIcon>
-          <ListItemText primary="Salir" />
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemIcon>
+              <ExitToApp />
+            </ListItemIcon>
+            <ListItemText primary="Salir" />
+          </ListItemButton>
         </ListItem>
       </List>
     </Box>

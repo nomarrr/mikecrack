@@ -1,4 +1,4 @@
-import { Box, List, ListItem, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemIcon, ListItemText, Typography, ListItemButton } from '@mui/material';
 import { CalendarMonth, ExitToApp } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -35,18 +35,22 @@ export default function ChecadorSidebar() {
       )}
       
       <List>
-        <ListItem button onClick={() => navigate('/checador/horario')}>
-          <ListItemIcon>
-            <CalendarMonth />
-          </ListItemIcon>
-          <ListItemText primary="Control de Asistencia" />
+        <ListItem disablePadding>
+          <ListItemButton onClick={() => navigate('/checador/horario')}>
+            <ListItemIcon>
+              <CalendarMonth />
+            </ListItemIcon>
+            <ListItemText primary="Control de Asistencia" />
+          </ListItemButton>
         </ListItem>
 
-        <ListItem button onClick={handleLogout}>
-          <ListItemIcon>
-            <ExitToApp />
-          </ListItemIcon>
-          <ListItemText primary="Salir" />
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemIcon>
+              <ExitToApp />
+            </ListItemIcon>
+            <ListItemText primary="Salir" />
+          </ListItemButton>
         </ListItem>
       </List>
     </Box>

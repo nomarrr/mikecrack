@@ -15,6 +15,7 @@ import {
   TableRow,
   Snackbar,
   Alert,
+  CircularProgress
 } from '@mui/material';
 import { usuariosService, Usuario } from '../services/supabaseService';
 import { supabase } from '../lib/supabase';
@@ -26,6 +27,26 @@ interface HorarioData {
   grupo: string;
   aula?: string;
   edificio?: string;
+}
+
+interface MateriaItem {
+  id: number;
+  name: string;
+}
+
+interface GrupoItem {
+  id: number;
+  name: string;
+  classroom: string;
+  building: string;
+}
+
+interface HorarioRaw {
+  id: number;
+  hora: string;
+  dia: string;
+  materia: MateriaItem;
+  grupo: GrupoItem;
 }
 
 const HORAS = ['07:00', '08:00', '09:00', '10:00', '11:00', '12:00', 
@@ -63,13 +84,13 @@ const getHorasNecesarias = (horarioMap: Map<string, HorarioData>): string[] => {
 export default function BuscarMaestroPage() {
   const [maestros, setMaestros] = useState<Usuario[]>([]);
   const [selectedMaestro, setSelectedMaestro] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [horarioData, setHorarioData] = useState<Map<string, HorarioData>>(new Map());
 
   useEffect(() => {
     const fetchMaestros = async () => {
-      setLoading(true);
+      setIsLoading(true);
       try {
         const usuarios = await usuariosService.getAll();
         const soloMaestros = usuarios.filter(user => user.role === 'Maestro');
@@ -77,7 +98,7 @@ export default function BuscarMaestroPage() {
       } catch (err: any) {
         setError('Error al cargar maestros: ' + err.message);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -86,7 +107,7 @@ export default function BuscarMaestroPage() {
 
   const cargarHorarioMaestro = async (maestroId: string) => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       
       const { data: horarios, error: horariosError } = await supabase
         .from('horario-maestro')
@@ -94,8 +115,8 @@ export default function BuscarMaestroPage() {
           id,
           hora,
           dia,
-          materia:materia_id(name),
-          grupo:grupo_id(name, classroom, building)
+          materia:materias(id, name),
+          grupo:grupo(id, name, classroom, building)
         `)
         .eq('maestro_id', maestroId);
 
@@ -103,15 +124,18 @@ export default function BuscarMaestroPage() {
 
       const horarioMap = new Map<string, HorarioData>();
 
-      horarios?.forEach(horario => {
+      horarios?.forEach((horario: any) => {
         const key = `${horario.dia}-${horario.hora}`;
+        const materiaData = horario.materia || {};
+        const grupoData = horario.grupo || {};
+        
         horarioMap.set(key, {
           dia: horario.dia,
           hora: horario.hora,
-          materia: horario.materia.name,
-          grupo: horario.grupo.name,
-          aula: horario.grupo.classroom,
-          edificio: horario.grupo.building
+          materia: materiaData.name || '',
+          grupo: grupoData.name || '',
+          aula: grupoData.classroom || '',
+          edificio: grupoData.building || ''
         });
       });
 
@@ -119,7 +143,7 @@ export default function BuscarMaestroPage() {
     } catch (err: any) {
       setError('Error al cargar horario: ' + err.message);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -157,7 +181,13 @@ export default function BuscarMaestroPage() {
           </Select>
         </FormControl>
 
-        {selectedMaestro && (
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {selectedMaestro && !isLoading && (
           <TableContainer sx={{ mt: 3 }}>
             <Table>
               <TableHead>
@@ -217,7 +247,7 @@ export default function BuscarMaestroPage() {
           </TableContainer>
         )}
 
-        {!selectedMaestro && (
+        {!selectedMaestro && !isLoading && (
           <Typography 
             variant="body1" 
             align="center" 
