@@ -59,6 +59,9 @@ function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
                 
+                {/* Redirección de la ruta raíz al login */}
+                <Route path="/" element={<Navigate to="/login" replace />} />
+                
                 {/* Rutas protegidas */}
                 <Route element={<ProtectedRoute />}>
                   {/* Rutas de Administrador */}
@@ -99,7 +102,7 @@ function App() {
                 </Route>
                 
                 {/* Catch-all route */}
-                <Route path="*" element={<div>Página no encontrada</div>} />
+                <Route path="*" element={<Navigate to="/login" replace />} />
               </Routes>
             </AuthProvider>
           </BrowserRouter>
