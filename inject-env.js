@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 
 // Script para inyectar variables de entorno en tiempo de construcción
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Obtener el directorio actual
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Ruta al archivo vercel-config.js después de la construcción
 const configPath = path.join(__dirname, 'dist', 'vercel-config.js');
