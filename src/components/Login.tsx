@@ -18,8 +18,29 @@ import { supabase } from '../lib/supabase'
 
 // Variable para depuración - mostrará información del entorno en el login
 const DEBUG_MODE = true;
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
-const SUPABASE_KEY_PRESENT = import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SÍ' : 'NO';
+
+// Función para obtener variables de entorno de múltiples fuentes
+const getEnv = (name: string, defaultValue = '') => {
+  // 1. Buscar en window.ENV
+  if (typeof window !== 'undefined' && window['ENV'] && window['ENV'][name.replace('VITE_', '')]) {
+    return window['ENV'][name.replace('VITE_', '')];
+  }
+  
+  // 2. Buscar en import.meta.env
+  if (import.meta.env && import.meta.env[name]) {
+    return import.meta.env[name];
+  }
+  
+  // 3. Buscar directamente en window
+  if (typeof window !== 'undefined' && (window as any)[name]) {
+    return (window as any)[name];
+  }
+  
+  return defaultValue;
+};
+
+const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', '');
+const SUPABASE_KEY_PRESENT = getEnv('VITE_SUPABASE_ANON_KEY') ? 'SÍ' : 'NO';
 const ENV_MODE = import.meta.env.MODE || 'desconocido';
 const IS_PROD = import.meta.env.PROD ? 'SÍ' : 'NO';
 

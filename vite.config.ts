@@ -71,6 +71,8 @@ export default defineConfig(({ mode }) => {
         '@mui/x-date-pickers',
         '@supabase/supabase-js'
       ]
-    }
+    },
+    // Copiar archivos estáticos adicionales a la carpeta dist
+    publicDir: 'public',
   }
 })

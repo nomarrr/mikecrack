@@ -1,5 +1,7 @@
-// Este archivo permite cargar variables de entorno en tiempo de ejecución
-// Vercel lo sustituirá con las variables reales de entorno
+// Configuración de variables de entorno en tiempo de ejecución
+// Este archivo se substituye durante el despliegue con los valores reales
 
-window.VITE_SUPABASE_URL = '{{VITE_SUPABASE_URL}}';
-window.VITE_SUPABASE_ANON_KEY = '{{VITE_SUPABASE_ANON_KEY}}'; 
+window.ENV = {
+  SUPABASE_URL: "REPLACE_SUPABASE_URL",
+  SUPABASE_ANON_KEY: "REPLACE_SUPABASE_ANON_KEY"
+}; 

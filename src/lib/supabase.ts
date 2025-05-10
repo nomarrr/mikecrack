@@ -3,6 +3,12 @@ import { createClient } from '@supabase/supabase-js'
 // Intenta obtener las variables de ambiente de diferentes fuentes
 // para máxima compatibilidad con diferentes entornos
 const getEnvVariable = (name: string) => {
+  // Obtener desde window.ENV (nuestro objeto global de config)
+  if (typeof window !== 'undefined' && window['ENV'] && window['ENV'][name.replace('VITE_', '')]) {
+    console.log(`Variable ${name} encontrada en window.ENV`);
+    return window['ENV'][name.replace('VITE_', '')];
+  }
+
   // Intenta primero desde import.meta.env (Vite)
   if (import.meta.env && import.meta.env[name]) {
     console.log(`Variable ${name} encontrada en import.meta.env`);

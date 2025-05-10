@@ -57,17 +57,33 @@
   </div>
 
   <script>
+    // Función para obtener variables de entorno de múltiples fuentes
+    function getEnv(name, defaultValue = '') {
+      // 1. Buscar en window.ENV
+      if (window.ENV && window.ENV[name.replace('VITE_', '')]) {
+        return window.ENV[name.replace('VITE_', '')];
+      }
+      
+      // 2. Buscar directamente en window
+      if (window[name]) {
+        return window[name];
+      }
+      
+      return defaultValue;
+    }
+    
     // Función para mostrar información de las variables de entorno
     function showEnvInfo() {
       const envInfo = document.getElementById('env-info');
       let info = '';
       
       // Obtener variables de diferentes fuentes
-      const supabaseUrl = window.VITE_SUPABASE_URL || '';
-      const supabaseKeyPresent = window.VITE_SUPABASE_ANON_KEY ? 'SÍ' : 'NO';
+      const supabaseUrl = getEnv('VITE_SUPABASE_URL', '');
+      const supabaseKeyPresent = getEnv('VITE_SUPABASE_ANON_KEY') ? 'SÍ' : 'NO';
       
       info += `URL de Supabase: ${supabaseUrl || 'NO DEFINIDA'}\n`;
       info += `API Key presente: ${supabaseKeyPresent}\n`;
+      info += `window.ENV presente: ${window.ENV ? 'SÍ' : 'NO'}\n`;
       
       envInfo.textContent = info;
     }
@@ -78,8 +94,8 @@
       resultElement.textContent = 'Realizando prueba de conexión...';
       
       try {
-        const supabaseUrl = window.VITE_SUPABASE_URL;
-        const supabaseKey = window.VITE_SUPABASE_ANON_KEY;
+        const supabaseUrl = getEnv('VITE_SUPABASE_URL', '');
+        const supabaseKey = getEnv('VITE_SUPABASE_ANON_KEY', '');
         
         if (!supabaseUrl || !supabaseKey) {
           resultElement.textContent = '❌ ERROR: Variables de entorno no definidas correctamente';
@@ -87,10 +103,10 @@
         }
         
         // Crear cliente de Supabase
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
         
         // Intentar una consulta simple
-        const { count, error } = await supabase.from('usuarios').select('count', { count: 'exact', head: true });
+        const { count, error } = await supabaseClient.from('usuarios').select('count', { count: 'exact', head: true });
         
         if (error) {
           resultElement.textContent = '❌ Error de conexión:\n' + 
