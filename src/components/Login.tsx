@@ -16,85 +16,17 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
-// Variable para depuración - mostrará información del entorno en el login
-const DEBUG_MODE = true;
-
-// Función para obtener variables de entorno de múltiples fuentes
-const getEnv = (name: string, defaultValue = '') => {
-  // 1. Buscar en window.ENV
-  if (typeof window !== 'undefined' && window['ENV'] && window['ENV'][name.replace('VITE_', '')]) {
-    return window['ENV'][name.replace('VITE_', '')];
-  }
-  
-  // 2. Buscar en import.meta.env
-  if (import.meta.env && import.meta.env[name]) {
-    return import.meta.env[name];
-  }
-  
-  // 3. Buscar directamente en window
-  if (typeof window !== 'undefined' && (window as any)[name]) {
-    return (window as any)[name];
-  }
-  
-  return defaultValue;
-};
-
-const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', '');
-const SUPABASE_KEY_PRESENT = getEnv('VITE_SUPABASE_ANON_KEY') ? 'SÍ' : 'NO';
-const ENV_MODE = import.meta.env.MODE || 'desconocido';
-const IS_PROD = import.meta.env.PROD ? 'SÍ' : 'NO';
-
-// Importar la imagen directamente si está en src/assets
-// import logoImage from '../assets/vision2025.jpeg'
+// Importar la imagen directamente
+import logoImage from '../assets/vision2025.jpeg'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string>('')
-  const [imageLoaded, setImageLoaded] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(true)
   const navigate = useNavigate()
   const { signIn } = useAuth()
-
-  // Cargar información de depuración
-  useEffect(() => {
-    if (DEBUG_MODE) {
-      try {
-        // Mostrar información detallada
-        let info = '🔍 INFORMACIÓN DE DEPURACIÓN\n\n';
-        info += `URL de Supabase: ${SUPABASE_URL || 'NO DEFINIDA'}\n`;
-        info += `API Key presente: ${SUPABASE_KEY_PRESENT}\n`;
-        info += `Modo: ${ENV_MODE}\n`;
-        info += `Es producción: ${IS_PROD}\n\n`;
-        
-        // Función para actualizar la información de depuración
-        const updateDebugInfo = (additionalInfo: string) => {
-          setDebugInfo(info + additionalInfo);
-        };
-        
-        // Intentar una consulta simple a Supabase para verificar la conexión
-        try {
-          supabase.from('usuarios').select('count', { count: 'exact', head: true })
-            .then(({ count, error }) => {
-              if (error) {
-                updateDebugInfo(
-                  `⚠️ Error de conexión: ${error.message || 'Desconocido'}\n` +
-                  `Código: ${error.code || 'N/A'}\n` +
-                  `Detalles: ${error.details || 'N/A'}\n`
-                );
-              } else {
-                updateDebugInfo(`✅ Conexión exitosa. Usuarios: ${count || 'N/A'}\n`);
-              }
-            });
-        } catch (queryError) {
-          updateDebugInfo(`❌ Error al ejecutar consulta: ${queryError instanceof Error ? queryError.message : String(queryError)}\n`);
-        }
-      } catch(e) {
-        setDebugInfo(`❌ Error al conectar: ${e instanceof Error ? e.message : String(e)}`);
-      }
-    }
-  }, []);
 
   // Verificar si el usuario ya está autenticado
   useEffect(() => {
@@ -208,39 +140,43 @@ export default function Login() {
             Checador Login
           </Typography>
           
-          {/* Usar un enfoque simple sin imagen externa */}
-          <Box 
-            sx={{ 
-              height: 110, 
-              mb: 3,
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              bgcolor: 'primary.light',
-              borderRadius: 1,
-              color: 'white',
-              fontWeight: 'bold'
-            }}
-          >
-            <Typography variant="h6">
-              Sistema de Checado
-            </Typography>
-          </Box>
+          {imageLoaded ? (
+            <Box 
+              component="img"
+              src={logoImage}
+              alt="Vision 2025 Logo"
+              sx={{ 
+                height: 110, 
+                mb: 3,
+                width: 'auto',
+                maxWidth: '100%'
+              }}
+              onError={handleImageError}
+            />
+          ) : (
+            <Box 
+              sx={{ 
+                height: 110, 
+                mb: 3,
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                bgcolor: 'primary.light',
+                borderRadius: 1,
+                color: 'white',
+                fontWeight: 'bold'
+              }}
+            >
+              <Typography variant="h6">
+                Sistema de Checado
+              </Typography>
+            </Box>
+          )}
           
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
-            </Alert>
-          )}
-
-          {/* Información de depuración */}
-          {DEBUG_MODE && debugInfo && (
-            <Alert severity="info" sx={{ width: '100%', mb: 2, whiteSpace: 'pre-line' }}>
-              <Typography variant="body2">
-                Información de depuración:
-                {debugInfo}
-              </Typography>
             </Alert>
           )}
           
