@@ -1,10 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: './',
+  base: '/',  // <- Este cambio es importante para Vercel
   server: {
     port: 3000,
     open: true
@@ -14,7 +13,6 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       onwarn(warning, warn) {
-        // Ignorar advertencias específicas que no impiden la compilación
         if (warning.code === 'MODULE_LEVEL_DIRECTIVE' || 
             warning.code === 'THIS_IS_UNDEFINED' ||
             warning.message.includes('Use of eval')) {
@@ -33,4 +31,4 @@ export default defineConfig({
       '@mui/x-date-pickers'
     ]
   }
-})
+});
