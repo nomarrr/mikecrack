@@ -41,6 +41,19 @@ console.log(`- URL de Supabase: ${supabaseUrl ? (supabaseUrl.substring(0, 8) + '
 console.log(`- Clave anónima presente: ${supabaseAnonKey ? 'SÍ' : 'NO'}`);
 console.log(`- Modo de ejecución: ${import.meta.env.MODE || 'desconocido'}`);
 console.log(`- Es producción: ${import.meta.env.PROD ? 'SÍ' : 'NO'}`);
+console.log(`- window.ENV presente: ${typeof window !== 'undefined' && window['ENV'] ? 'SÍ' : 'NO'}`);
+
+// Verificar si estamos en navegador y añadir variable de depuración al window para facilitar diagnóstico
+if (typeof window !== 'undefined') {
+  (window as any).SUPABASE_DEBUG = {
+    url: supabaseUrl ? `${supabaseUrl.substring(0, 10)}...` : 'NO DEFINIDA',
+    keyPresent: supabaseAnonKey ? 'SÍ' : 'NO',
+    mode: import.meta.env.MODE || 'desconocido',
+    isProduction: import.meta.env.PROD ? 'SÍ' : 'NO',
+    windowEnvPresent: window['ENV'] ? 'SÍ' : 'NO',
+    checkTime: new Date().toISOString()
+  };
+}
 
 // Verificación más estricta con mejor manejo de errores
 if (!supabaseUrl) {
@@ -71,15 +84,40 @@ if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
   supabaseKeyFinal = supabaseAnonKey || fallbackKey;
 }
 
-// Crear cliente de Supabase con mejor manejo de errores
-export const supabase = createClient(
-  supabaseUrlFinal,
-  supabaseKeyFinal,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: false
+// Función para crear cliente con manejo de errores
+let supabaseInstance: any = null;
+try {
+  // Crear cliente de Supabase con mejor manejo de errores
+  supabaseInstance = createClient(
+    supabaseUrlFinal,
+    supabaseKeyFinal,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: false
+      }
     }
-  }
-) 
+  );
+
+  console.log('Cliente Supabase inicializado correctamente con URL:', supabaseUrlFinal.substring(0, 10) + '...');
+} catch (error) {
+  console.error('Error al inicializar cliente Supabase:', error);
+  
+  // Crear un cliente de respaldo con métodos que registran errores
+  supabaseInstance = {
+    from: () => ({
+      select: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }}),
+      insert: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }}),
+      update: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }}),
+      delete: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }}),
+      eq: () => ({ single: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }})})
+    }),
+    auth: {
+      signIn: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }}),
+      signOut: () => Promise.resolve({ error: { message: 'Error de inicialización de Supabase. Revisa la consola.' }})
+    }
+  };
+}
+
+export const supabase = supabaseInstance; 

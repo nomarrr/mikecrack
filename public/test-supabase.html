@@ -40,20 +40,66 @@
       cursor: pointer;
       margin-top: 20px;
     }
+    .error-box {
+      background-color: #ffdddd;
+      border-left: 5px solid #f44336;
+      padding: 10px 15px;
+      margin: 15px 0;
+    }
+    .success-box {
+      background-color: #ddffdd;
+      border-left: 5px solid #4CAF50;
+      padding: 10px 15px;
+      margin: 15px 0;
+    }
+    .step {
+      background-color: #e6f7ff;
+      border-left: 5px solid #2196F3;
+      padding: 10px 15px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
   <div>
-    <h1>Prueba de conexión a Supabase</h1>
-    <p>Esta página verifica si las variables de entorno para Supabase están configuradas correctamente.</p>
+    <h1>Diagnóstico de Configuración de Supabase</h1>
+    <p>Esta página verifica detalladamente si las variables de entorno para Supabase están configuradas correctamente.</p>
     
-    <h2>Variables de entorno detectadas:</h2>
+    <h2>1. Verificación de window.ENV</h2>
+    <div id="env-check"></div>
+    
+    <h2>2. Variables de entorno detectadas</h2>
     <pre id="env-info"></pre>
     
-    <h2>Resultado de la prueba:</h2>
+    <h2>3. Resultado de la prueba de conexión</h2>
     <pre id="test-result">Haz clic en "Probar conexión" para iniciar la prueba.</pre>
     
     <button id="test-button">Probar conexión</button>
+    
+    <h2>Instrucciones para resolver problemas:</h2>
+    <div class="step">
+      <h3>Paso 1: Configurar Variables de Entorno en Vercel</h3>
+      <p>Ve a <a href="https://vercel.com" target="_blank">Vercel Dashboard</a> → Tu Proyecto → Settings → Environment Variables</p>
+      <p>Agrega las siguientes variables:</p>
+      <ul>
+        <li><strong>VITE_SUPABASE_URL</strong>: Tu URL de proyecto (ejemplo: https://abcdefghijk.supabase.co)</li>
+        <li><strong>VITE_SUPABASE_ANON_KEY</strong>: Tu clave anónima</li>
+      </ul>
+    </div>
+    
+    <div class="step">
+      <h3>Paso 2: Redesplegar la Aplicación</h3>
+      <p>Después de configurar las variables, vuelve a desplegar tu aplicación:</p>
+      <ul>
+        <li>Ve a la pestaña "Deployments"</li>
+        <li>Haz clic en "Redeploy" en tu despliegue más reciente</li>
+      </ul>
+    </div>
+    
+    <div class="step">
+      <h3>Paso 3: Verificar Nuevamente</h3>
+      <p>Después de redesplegar, recarga esta página y vuelve a probar la conexión.</p>
+    </div>
   </div>
 
   <script>
@@ -72,6 +118,44 @@
       return defaultValue;
     }
     
+    // Verificar si window.ENV existe y está correctamente configurado
+    function checkENV() {
+      const envCheckDiv = document.getElementById('env-check');
+      
+      if (!window.ENV) {
+        envCheckDiv.innerHTML = `
+          <div class="error-box">
+            <strong>Error:</strong> window.ENV no está definido. El archivo vercel-config.js no se ha cargado correctamente.
+            <p>Esto puede deberse a un error durante el despliegue o a que el archivo no se ha copiado correctamente.</p>
+          </div>
+        `;
+        return false;
+      }
+      
+      // Verificar si las variables están presentes
+      const isMissing = window.ENV.IS_MISSING_VARIABLES;
+      const isProduction = window.ENV.IS_PRODUCTION;
+      
+      if (isMissing) {
+        envCheckDiv.innerHTML = `
+          <div class="error-box">
+            <strong>Error:</strong> Faltan variables de entorno importantes.
+            <p>Estado: ${isProduction ? 'Producción' : 'Desarrollo'}</p>
+            <p>No se han configurado correctamente las variables de entorno en Vercel.</p>
+          </div>
+        `;
+        return false;
+      } else {
+        envCheckDiv.innerHTML = `
+          <div class="success-box">
+            <strong>Correcto:</strong> window.ENV está configurado correctamente.
+            <p>Las variables de entorno parecen estar disponibles.</p>
+          </div>
+        `;
+        return true;
+      }
+    }
+    
     // Función para mostrar información de las variables de entorno
     function showEnvInfo() {
       const envInfo = document.getElementById('env-info');
@@ -81,9 +165,13 @@
       const supabaseUrl = getEnv('VITE_SUPABASE_URL', '');
       const supabaseKeyPresent = getEnv('VITE_SUPABASE_ANON_KEY') ? 'SÍ' : 'NO';
       
-      info += `URL de Supabase: ${supabaseUrl || 'NO DEFINIDA'}\n`;
-      info += `API Key presente: ${supabaseKeyPresent}\n`;
       info += `window.ENV presente: ${window.ENV ? 'SÍ' : 'NO'}\n`;
+      if (window.ENV) {
+        info += `window.ENV.IS_MISSING_VARIABLES: ${window.ENV.IS_MISSING_VARIABLES}\n`;
+        info += `window.ENV.IS_PRODUCTION: ${window.ENV.IS_PRODUCTION}\n`;
+      }
+      info += `\nURL de Supabase: ${supabaseUrl ? (supabaseUrl.substr(0, 15) + '...') : 'NO DEFINIDA'}\n`;
+      info += `API Key presente: ${supabaseKeyPresent}\n`;
       
       envInfo.textContent = info;
     }
@@ -98,7 +186,9 @@
         const supabaseKey = getEnv('VITE_SUPABASE_ANON_KEY', '');
         
         if (!supabaseUrl || !supabaseKey) {
-          resultElement.textContent = '❌ ERROR: Variables de entorno no definidas correctamente';
+          resultElement.textContent = '❌ ERROR: Variables de entorno no definidas correctamente\n\n' + 
+            `URL: ${supabaseUrl || 'NO DEFINIDA'}\n` +
+            `API Key: ${supabaseKey ? 'PRESENTE' : 'NO DEFINIDA'}`;
           return;
         }
         
@@ -123,8 +213,11 @@
       }
     }
     
-    // Mostrar información de las variables al cargar la página
-    document.addEventListener('DOMContentLoaded', showEnvInfo);
+    // Ejecutar verificaciones al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      checkENV();
+      showEnvInfo();
+    });
     
     // Configurar el botón de prueba
     document.getElementById('test-button').addEventListener('click', testSupabaseConnection);
