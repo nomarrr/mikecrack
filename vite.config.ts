@@ -30,13 +30,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: mode === 'development',
       assetsInlineLimit: 4096,
       cssCodeSplit: true,
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: mode === 'production',
-          drop_debugger: mode === 'production',
-        },
-      },
+      minify: 'esbuild',
       rollupOptions: {
         output: {
           manualChunks: {
