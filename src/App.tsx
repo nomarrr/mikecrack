@@ -48,6 +48,44 @@ const theme = createTheme({
   },
 });
 
+// Componente para mostrar cuando hay un error
+const ErrorComponent = () => (
+  <Box 
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      padding: 3,
+      textAlign: 'center'
+    }}
+  >
+    <h1>Error en la aplicación</h1>
+    <p>Se ha producido un error al cargar la aplicación. Puede ser debido a:</p>
+    <ul style={{ textAlign: 'left' }}>
+      <li>Problemas de conexión con la base de datos</li>
+      <li>Falta de configuración de variables de entorno</li>
+      <li>Problemas con el enrutamiento</li>
+    </ul>
+    <p>Por favor, intenta recargar la página o contacta al administrador.</p>
+    <button 
+      onClick={() => window.location.reload()} 
+      style={{ 
+        padding: '10px 20px', 
+        background: '#4285F4', 
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer',
+        marginTop: '20px'
+      }}
+    >
+      Recargar página
+    </button>
+  </Box>
+);
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -60,11 +98,13 @@ function App() {
                 {/* Mostrar Login tanto en / como en /login */}
                 <Route path="/" element={<Login />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/error" element={<ErrorComponent />} />
                 
                 {/* Rutas protegidas */}
                 <Route element={<ProtectedRoute />}>
                   {/* Rutas de Administrador */}
                   <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<AdminDashboard />} />
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="horario" element={<HorarioPage />} />
                     <Route path="horarios" element={<HorariosPage />} />
@@ -80,28 +120,32 @@ function App() {
 
                   {/* Rutas de Alumno */}
                   <Route path="/alumno" element={<AlumnoLayout />}>
+                    <Route index element={<AlumnoHorarioPage />} />
                     <Route path="horario" element={<AlumnoHorarioPage />} />
                   </Route>
 
                   {/* Rutas de Jefe de Grupo */}
                   <Route path="/jefe" element={<JefeLayout />}>
+                    <Route index element={<JefeHorarioPage />} />
                     <Route path="horario" element={<JefeHorarioPage />} />
                     <Route path="buscar" element={<BuscarMaestroPage />} />
                   </Route>
 
                   {/* Rutas de Checador */}
                   <Route path="/checador" element={<ChecadorLayout />}>
+                    <Route index element={<ChecadorHorarioPage />} />
                     <Route path="horario" element={<ChecadorHorarioPage />} />
                   </Route>
 
                   {/* Rutas de Maestro */}
                   <Route path="/maestro" element={<MaestroLayout />}>
+                    <Route index element={<MaestroHorarioPage />} />
                     <Route path="horario" element={<MaestroHorarioPage />} />
                   </Route>
                 </Route>
                 
                 {/* Catch-all route */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AuthProvider>
           </BrowserRouter>

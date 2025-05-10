@@ -16,6 +16,11 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
+// Variable para depuración - mostrará información del entorno en el login
+const DEBUG_MODE = true;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+const SUPABASE_KEY_PRESENT = import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SÍ' : 'NO';
+
 // Importar la imagen directamente si está en src/assets
 // import logoImage from '../assets/vision2025.jpeg'
 
@@ -24,9 +29,30 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [debugInfo, setDebugInfo] = useState<string>('')
   const [imageLoaded, setImageLoaded] = useState(false)
   const navigate = useNavigate()
   const { signIn } = useAuth()
+
+  // Cargar información de depuración
+  useEffect(() => {
+    if (DEBUG_MODE) {
+      try {
+        // Intentar una consulta simple a Supabase para verificar la conexión
+        supabase.from('usuarios').select('count', { count: 'exact', head: true })
+          .then(({ count, error }) => {
+            let info = `URL: ${SUPABASE_URL}\n`;
+            info += `API Key presente: ${SUPABASE_KEY_PRESENT}\n`;
+            info += error 
+              ? `Error de conexión: ${error.message}` 
+              : `Conexión exitosa. Usuarios: ${count || 'N/A'}`;
+            setDebugInfo(info);
+          });
+      } catch(e) {
+        setDebugInfo(`Error al conectar: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+  }, []);
 
   // Verificar si el usuario ya está autenticado
   useEffect(() => {
@@ -76,6 +102,7 @@ export default function Login() {
         .single()
 
       if (userError) {
+        console.error('Error de Supabase:', userError);
         throw new Error('Credenciales inválidas')
       }
       
@@ -162,6 +189,16 @@ export default function Login() {
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {/* Información de depuración */}
+          {DEBUG_MODE && debugInfo && (
+            <Alert severity="info" sx={{ width: '100%', mb: 2, whiteSpace: 'pre-line' }}>
+              <Typography variant="body2">
+                Información de depuración:
+                {debugInfo}
+              </Typography>
             </Alert>
           )}
           
