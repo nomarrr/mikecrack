@@ -5,20 +5,23 @@ import { createClient } from '@supabase/supabase-js'
 const getEnvVariable = (name: string) => {
   // Intenta primero desde import.meta.env (Vite)
   if (import.meta.env && import.meta.env[name]) {
+    console.log(`Variable ${name} encontrada en import.meta.env`);
     return import.meta.env[name];
   }
   
   // Luego intenta desde process.env (Node.js / SSR)
   if (typeof process !== 'undefined' && process.env && process.env[name]) {
+    console.log(`Variable ${name} encontrada en process.env`);
     return process.env[name];
   }
   
   // Intenta acceder directamente desde window si está disponible (último recurso)
   if (typeof window !== 'undefined' && (window as any)[name]) {
+    console.log(`Variable ${name} encontrada en window`);
     return (window as any)[name];
   }
   
-  // Si llegamos aquí, variable no encontrada
+  console.warn(`⚠️ Variable ${name} NO ENCONTRADA en ninguna fuente`);
   return '';
 }
 
@@ -26,12 +29,21 @@ const getEnvVariable = (name: string) => {
 const supabaseUrl = getEnvVariable('VITE_SUPABASE_URL') || '';
 const supabaseAnonKey = getEnvVariable('VITE_SUPABASE_ANON_KEY') || '';
 
+// Mostrar información de entorno para depuración
+console.log('🔍 Información de entorno:');
+console.log(`- URL de Supabase: ${supabaseUrl ? (supabaseUrl.substring(0, 8) + '...') : 'NO DEFINIDA'}`);
+console.log(`- Clave anónima presente: ${supabaseAnonKey ? 'SÍ' : 'NO'}`);
+console.log(`- Modo de ejecución: ${import.meta.env.MODE || 'desconocido'}`);
+console.log(`- Es producción: ${import.meta.env.PROD ? 'SÍ' : 'NO'}`);
+
 // Verificación más estricta con mejor manejo de errores
 if (!supabaseUrl) {
   console.error('ERROR CRÍTICO: URL de Supabase no definida. La aplicación no funcionará correctamente.');
   // En desarrollo, proporcionar instrucciones útiles
   if (import.meta.env.DEV) {
     console.info('Para desarrollo local, crea un archivo .env.local con VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY');
+  } else {
+    console.error('En producción, asegúrate de configurar las variables de entorno en Vercel o tu proveedor de hosting');
   }
 }
 
@@ -39,15 +51,24 @@ if (!supabaseAnonKey) {
   console.error('ERROR CRÍTICO: Clave anónima de Supabase no definida. La autenticación no funcionará correctamente.');
 }
 
-// Valores de respaldo para evitar errores en compilación/desarrollo
-// NOTA: Estos valores deben ser reemplazados con los reales en producción
-const fallbackUrl = 'https://placeholder-supabase-url.supabase.co';
-const fallbackKey = 'placeholder-key-for-development-only';
+// En producción, NO usar valores de respaldo
+let supabaseUrlFinal = supabaseUrl;
+let supabaseKeyFinal = supabaseAnonKey;
+
+// Solo usar valores de respaldo en desarrollo
+if (import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey)) {
+  console.warn('⚠️ Usando valores de respaldo para Supabase - SOLO PARA DESARROLLO');
+  const fallbackUrl = 'https://placeholder-supabase-url.supabase.co';
+  const fallbackKey = 'placeholder-key-for-development-only';
+  
+  supabaseUrlFinal = supabaseUrl || fallbackUrl;
+  supabaseKeyFinal = supabaseAnonKey || fallbackKey;
+}
 
 // Crear cliente de Supabase con mejor manejo de errores
 export const supabase = createClient(
-  supabaseUrl || fallbackUrl,  // Usar fallback si la URL no está definida
-  supabaseAnonKey || fallbackKey,  // Usar fallback si la clave no está definida
+  supabaseUrlFinal,
+  supabaseKeyFinal,
   {
     auth: {
       persistSession: true,

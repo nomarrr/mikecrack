@@ -20,6 +20,8 @@ import { supabase } from '../lib/supabase'
 const DEBUG_MODE = true;
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_KEY_PRESENT = import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SÍ' : 'NO';
+const ENV_MODE = import.meta.env.MODE || 'desconocido';
+const IS_PROD = import.meta.env.PROD ? 'SÍ' : 'NO';
 
 // Importar la imagen directamente si está en src/assets
 // import logoImage from '../assets/vision2025.jpeg'
@@ -38,18 +40,37 @@ export default function Login() {
   useEffect(() => {
     if (DEBUG_MODE) {
       try {
+        // Mostrar información detallada
+        let info = '🔍 INFORMACIÓN DE DEPURACIÓN\n\n';
+        info += `URL de Supabase: ${SUPABASE_URL || 'NO DEFINIDA'}\n`;
+        info += `API Key presente: ${SUPABASE_KEY_PRESENT}\n`;
+        info += `Modo: ${ENV_MODE}\n`;
+        info += `Es producción: ${IS_PROD}\n\n`;
+        
+        // Función para actualizar la información de depuración
+        const updateDebugInfo = (additionalInfo: string) => {
+          setDebugInfo(info + additionalInfo);
+        };
+        
         // Intentar una consulta simple a Supabase para verificar la conexión
-        supabase.from('usuarios').select('count', { count: 'exact', head: true })
-          .then(({ count, error }) => {
-            let info = `URL: ${SUPABASE_URL}\n`;
-            info += `API Key presente: ${SUPABASE_KEY_PRESENT}\n`;
-            info += error 
-              ? `Error de conexión: ${error.message}` 
-              : `Conexión exitosa. Usuarios: ${count || 'N/A'}`;
-            setDebugInfo(info);
-          });
+        try {
+          supabase.from('usuarios').select('count', { count: 'exact', head: true })
+            .then(({ count, error }) => {
+              if (error) {
+                updateDebugInfo(
+                  `⚠️ Error de conexión: ${error.message || 'Desconocido'}\n` +
+                  `Código: ${error.code || 'N/A'}\n` +
+                  `Detalles: ${error.details || 'N/A'}\n`
+                );
+              } else {
+                updateDebugInfo(`✅ Conexión exitosa. Usuarios: ${count || 'N/A'}\n`);
+              }
+            });
+        } catch (queryError) {
+          updateDebugInfo(`❌ Error al ejecutar consulta: ${queryError instanceof Error ? queryError.message : String(queryError)}\n`);
+        }
       } catch(e) {
-        setDebugInfo(`Error al conectar: ${e instanceof Error ? e.message : String(e)}`);
+        setDebugInfo(`❌ Error al conectar: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
   }, []);

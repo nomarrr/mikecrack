@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prueba de Supabase</title>
+  <!-- Cargar variables de entorno desde el servidor -->
+  <script src="/vercel-config.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      line-height: 1.6;
+      color: #333;
+    }
+    div {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #4285F4;
+    }
+    pre {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <h1>Prueba de conexión a Supabase</h1>
+    <p>Esta página verifica si las variables de entorno para Supabase están configuradas correctamente.</p>
+    
+    <h2>Variables de entorno detectadas:</h2>
+    <pre id="env-info"></pre>
+    
+    <h2>Resultado de la prueba:</h2>
+    <pre id="test-result">Haz clic en "Probar conexión" para iniciar la prueba.</pre>
+    
+    <button id="test-button">Probar conexión</button>
+  </div>
+
+  <script>
+    // Función para mostrar información de las variables de entorno
+    function showEnvInfo() {
+      const envInfo = document.getElementById('env-info');
+      let info = '';
+      
+      // Obtener variables de diferentes fuentes
+      const supabaseUrl = window.VITE_SUPABASE_URL || '';
+      const supabaseKeyPresent = window.VITE_SUPABASE_ANON_KEY ? 'SÍ' : 'NO';
+      
+      info += `URL de Supabase: ${supabaseUrl || 'NO DEFINIDA'}\n`;
+      info += `API Key presente: ${supabaseKeyPresent}\n`;
+      
+      envInfo.textContent = info;
+    }
+    
+    // Función para probar la conexión a Supabase
+    async function testSupabaseConnection() {
+      const resultElement = document.getElementById('test-result');
+      resultElement.textContent = 'Realizando prueba de conexión...';
+      
+      try {
+        const supabaseUrl = window.VITE_SUPABASE_URL;
+        const supabaseKey = window.VITE_SUPABASE_ANON_KEY;
+        
+        if (!supabaseUrl || !supabaseKey) {
+          resultElement.textContent = '❌ ERROR: Variables de entorno no definidas correctamente';
+          return;
+        }
+        
+        // Crear cliente de Supabase
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Intentar una consulta simple
+        const { count, error } = await supabase.from('usuarios').select('count', { count: 'exact', head: true });
+        
+        if (error) {
+          resultElement.textContent = '❌ Error de conexión:\n' + 
+            `Mensaje: ${error.message || 'Desconocido'}\n` +
+            `Código: ${error.code || 'N/A'}\n` +
+            `Detalles: ${error.details || 'N/A'}`;
+        } else {
+          resultElement.textContent = '✅ Conexión exitosa!\n' +
+            `Usuarios en la base de datos: ${count || 'N/A'}`;
+        }
+      } catch (e) {
+        resultElement.textContent = '❌ Error al realizar la prueba:\n' + 
+          (e instanceof Error ? e.message : String(e));
+      }
+    }
+    
+    // Mostrar información de las variables al cargar la página
+    document.addEventListener('DOMContentLoaded', showEnvInfo);
+    
+    // Configurar el botón de prueba
+    document.getElementById('test-button').addEventListener('click', testSupabaseConnection);
+  </script>
+</body>
+</html> 
