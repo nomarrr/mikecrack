@@ -16,6 +16,9 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import { useAuth } from '../contexts/AuthContext'
 import { supabase } from '../lib/supabase'
 
+// Importar la imagen directamente si está en src/assets
+// import logoImage from '../assets/vision2025.jpeg'
+
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -55,6 +58,11 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (!email || !password) {
+      setError('Por favor ingrese email y contraseña')
+      return
+    }
+    
     try {
       setLoading(true)
       setError(null)
@@ -79,7 +87,7 @@ export default function Login() {
       await signIn(userData)
       
       // Redirigir según el rol
-      const roleRoutes = {
+      const roleRoutes: Record<string, string> = {
         Administrador: '/admin/dashboard',
         Alumno: '/alumno/horario',
         Jefe_de_Grupo: '/jefe/horario',
@@ -131,38 +139,25 @@ export default function Login() {
             Checador Login
           </Typography>
           
-          {/* Usar un enfoque condicional o una imagen base64 como reserva */}
-          {!imageLoaded ? (
-            <Box 
-              sx={{ 
-                height: 110, 
-                mb: 3,
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                bgcolor: 'rgba(0,0,0,0.05)',
-                borderRadius: 1
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Sistema de Checado
-              </Typography>
-            </Box>
-          ) : (
-            <Box 
-              component="img" 
-              src="vision2025.jpeg" 
-              alt="Logo" 
-              onError={handleImageError}
-              onLoad={() => setImageLoaded(true)}
-              sx={{ 
-                height: 110, 
-                mb: 3,
-                maxWidth: '100%'
-              }} 
-            />
-          )}
+          {/* Usar un enfoque simple sin imagen externa */}
+          <Box 
+            sx={{ 
+              height: 110, 
+              mb: 3,
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              bgcolor: 'primary.light',
+              borderRadius: 1,
+              color: 'white',
+              fontWeight: 'bold'
+            }}
+          >
+            <Typography variant="h6">
+              Sistema de Checado
+            </Typography>
+          </Box>
           
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>

@@ -1,7 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Replace these with your actual Supabase URL and public anon key
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'your-supabase-url'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-supabase-anon-key'
+// Configuración de Supabase
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey) 
+// Verificar que las variables de entorno estén definidas
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Error: Variables de entorno de Supabase no definidas correctamente')
+}
+
+// Crear cliente de Supabase con manejo de errores
+export const supabase = createClient(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false
+    }
+  }
+) 
