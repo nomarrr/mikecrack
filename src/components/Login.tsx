@@ -174,6 +174,28 @@ export default function Login() {
             </Box>
           )}
           
+          {/* Nombres de los integrantes del equipo */}
+          <Box sx={{ mb: 3, textAlign: 'center' }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Desarrollado por:
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Alvarez Cota Nomar Alberto
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Beltran Beltran Omar de Jesus
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Cota Bobadilla Juan Carlos de Jesus
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Franco Reyes Ramon
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Ortega Cañedo Daniel
+            </Typography>
+          </Box>
+          
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
