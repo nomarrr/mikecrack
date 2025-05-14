@@ -180,19 +180,19 @@ export default function Login() {
               Desarrollado por:
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Alvarez Cota Nomar Alberto
+              Alvarez Cota Nomar Alberto (NOMARRR)
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Beltran Beltran Omar de Jesus
+              Beltran Beltran Omar de Jesus (Omarius016)
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Cota Bobadilla Juan Carlos de Jesus
+              Cota Bobadilla Juan Carlos de Jesus (JuanCB0148)
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Franco Reyes Ramon
+              Franco Reyes Ramon (Neo-Ram)
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Ortega Cañedo Daniel
+              Ortega Cañedo Daniel German (Danix_132)
             </Typography>
           </Box>
           
